@@ -1,0 +1,36 @@
+<?php
+
+// Copy config.php.sample to config.php and edit it as required
+
+// configure your application at
+// https://dashboard.nexmo.com/messages/create-application
+$config['application_id'] = "";
+
+// install the CLI tool from https://github.com/nexmo/nexmo-cli
+// generate a JWT with the CLI by adding your application ID from above into this command: 
+// nexmo jwt:generate private.key exp=$(($(date +%s)+86400)) application_id=NEXMO_APPLICATION_ID
+// then store the JWT here:
+$config['jwt'] = "";
+
+// *** The interesting bit starts here ***
+
+// The from details of your business
+$config['from'] = [
+    'type' => 'sms',
+    'number' => ''
+];
+
+
+// A list in order of communication types and details for the customer
+// IRL this would come from a database, just trying to keep things simple here
+$config['customer1'] = [
+    0 => [
+        'type' => 'sms',
+        'number' => ''
+    ],
+    1 => [
+        'type' => 'sms',
+        'number' => ''
+    ]
+];
+

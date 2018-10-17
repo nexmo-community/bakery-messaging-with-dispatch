@@ -1,0 +1,4 @@
+private.key
+.env
+vendor/*
+config.php
