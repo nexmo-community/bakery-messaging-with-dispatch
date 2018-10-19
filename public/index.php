@@ -9,41 +9,113 @@ $app = new \Slim\App(['config' => $config]);
 $container = $app->getContainer();
 $container['view'] = new \Slim\Views\PhpRenderer('../templates/');
 
+// allow us to handle errors ourselves
+unset($app->getContainer()['errorHandler']);
 
 $app->map(['GET', 'POST'], '/', function (Request $request, Response $response, array $args) {
-    $information = "";
+    $config = $this->get('config');
+    $information = [];
+    $title = "Cupcake Bakery Customer Messaging";
 
     if($data = $request->getParsedBody()) {
         $message = $data['message'];
-        echo $message;
-        $config = $this->get('config');
-        error_log(json_encode($config));
         
         $client = new \GuzzleHttp\Client(['base_uri' => "https://api.nexmo.com/v0.1/messages"]);
 
-        $apiResponse = $client->request('POST', '/v0.1/messages', [
-            'headers' => [
-                'Authorization' => 'Bearer ' . $config['jwt'],
-                'Content-Type' => 'application/json',
-                'Accept' => 'application/json'
-            ],
-            'json' => [
-                'from' => $config['from'],
-                'to' => $config['customer1'][0],
-                'message' => [
-                    'content' => [
-                        'type' => 'text',
-                        'text' => $message
+        try{
+            $apiResponse = $client->request('POST', '/v0.1/messages', [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $config['jwt'],
+                    'Content-Type' => 'application/json',
+                    'Accept' => 'application/json'
+                ],
+                'json' => [
+                    'from' => $config['from'],
+                    'to' => $config['customer1'][0],
+                    'message' => [
+                        'content' => [
+                            'type' => 'text',
+                            'text' => $message
+                        ]
                     ]
                 ]
-            ]
-        ]);
+            ]);
 
-        echo $apiResponse->getStatusCode();
-        echo $apiResponse->getBody();
+            $information['statusCode'] = $apiResponse->getStatusCode();
+            $information['body'] = $apiResponse->getBody();
+        } catch (Exception $e) {
+            $response = $e->getResponse();
+            $responseBodyAsString = $response->getBody()->getContents();
+            echo $responseBodyAsString;
+            error_log($responseBodyAsString);
+        }
+
     }
 
-    $response = $this->view->render($response, 'index.html', ['information' => $information]);
+    $response = $this->view->render($response, 'index.html', ['information' => $information, 'title' => $title]);
+    return $response;
+});
+
+$app->map(['GET', 'POST'], '/message-with-dispatch', function (Request $request, Response $response, array $args) {
+    $config = $this->get('config');
+    $information = [];
+    $title = "Cupcake Bakery Customer Messaging With Fallback";
+
+    if($data = $request->getParsedBody()) {
+        $message = $data['message'];
+        
+        $client = new \GuzzleHttp\Client(['base_uri' => "https://api.nexmo.com/v0.1/messages"]);
+
+        try{
+            $apiResponse = $client->request('POST', '/v0.1/dispatch', [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $config['jwt'],
+                    'Content-Type' => 'application/json',
+                    'Accept' => 'application/json'
+                ],
+                'json' => [
+                    'template' => 'failover',
+                    'workflow' => [
+                        [
+                            'from' => $config['from'],
+                            'to' => $config['customer1'][0],
+                            'message' => [
+                                'content' => [
+                                    'type' => 'text',
+                                    'text' => $message
+                                ]
+                            ],
+                            'failover' => [
+                                'expiry_time' => 15, // in seconds, 15 is the minimum
+                                'condition_status' => 'delivered' // some platforms offer "read" as well
+                            ]
+                        ],
+                        [
+                            'from' => $config['from'],
+                            'to' => $config['customer1'][1],
+                            'message' => [
+                                'content' => [
+                                    'type' => 'text',
+                                    'text' => 'Message retry. ' . $message
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            ]);
+
+            $information['statusCode'] = $apiResponse->getStatusCode();
+            $information['body'] = $apiResponse->getBody();
+        } catch (Exception $e) {
+            $response = $e->getResponse();
+            $responseBodyAsString = $response->getBody()->getContents();
+            echo $responseBodyAsString;
+            error_log($responseBodyAsString);
+        }
+
+    }
+
+    $response = $this->view->render($response, 'index.html', ['information' => $information, 'title' => $title]);
     return $response;
 });
 

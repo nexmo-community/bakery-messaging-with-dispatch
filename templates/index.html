@@ -1,7 +1,18 @@
-<h1>Cupcake Bakery Customer Messaging</h1>
+<h1><?=$title?></h1>
 
-<form name="messaging" method="post" action="/">
+<p><a href="/">Send a customer message</a></p>
+<p><a href="/message-with-dispatch">Send a customer message with fallback</a></p>
+
+<form name="messaging" method="post">
     <p><label for="message">Message:</label>
     <input type="text" size="80" name="message" id="message" /></p>
     <p><input type="submit" value="Send" /></p>
 </form>
+
+<?php
+if($information['statusCode']) {
+    echo "<p>Status code: " . $information['statusCode'] . "</p>\n";
+}
+if($information['statusCode']) {
+    echo "<p>Response body: " . $information['body'] . "</p>\n";
+}
