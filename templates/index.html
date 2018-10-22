@@ -1,18 +1,34 @@
-<h1><?=$title?></h1>
+<html>
+  <head>
+    <title><?=$title?></title>
+    <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/pure-min.css" />
+  </head>
+  <body>
 
-<p><a href="/">Send a customer message</a></p>
-<p><a href="/message-with-dispatch">Send a customer message with fallback</a></p>
+    <div style="width:800px;margin:auto" />
+      <h1><?=$title?></h1>
 
-<form name="messaging" method="post">
-    <p><label for="message">Message:</label>
-    <input type="text" size="80" name="message" id="message" /></p>
-    <p><input type="submit" value="Send" /></p>
-</form>
+      <div class="menu">
+         <span><a href="/">Send message</a></span> | <span><a href="/message-with-dispatch">Send message with fallback</a></span>
+      </div>
 
-<?php
-if($information['statusCode']) {
-    echo "<p>Status code: " . $information['statusCode'] . "</p>\n";
-}
-if($information['statusCode']) {
-    echo "<p>Response body: " . $information['body'] . "</p>\n";
-}
+      <div class="form">
+        <form name="messaging" method="post" class="pure-form pure-form-stacked">
+          <p><label for="message">Message:</label>
+          <input type="text" size="80" name="message" id="message" /></p>
+          <p><input type="submit" value="Send" class="pure-button pure-button-primary" /></p>
+        </form>
+      </div>
+
+      <div style="border:1px;broder-color:grey;background-color:f0f0f0;font-family:monospace,monospace">
+      <?php
+      if(isset($information['statusCode']) && isset($information['body'])) {
+          echo "<p>Status code: " . $information['statusCode'] . "</p>\n";
+          echo "<p>Response body: " . $information['body'] . "</p>\n";
+      }
+      ?>
+      </div>
+    </div>
+
+  </body>
+</html>
